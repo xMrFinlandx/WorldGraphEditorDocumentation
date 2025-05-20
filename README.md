@@ -1,3 +1,6 @@
+> 📘 This is the English version of the documentation.  
+> 📗 [Read this documentation in Russian](./README_RU.md)
+
 # Contents  
 
 - [Introduction](#introduction)  
@@ -191,7 +194,7 @@ Loads a scene by its build index.
 
 Parameters:  
 
-| Name          | Type   | Description          |  
+| Name         | Type   | Description         |  
 | ------------ | ------ | ------------------- |  
 | `buildIndex` | `int`  | Scene build index   |  
 
@@ -204,10 +207,10 @@ Moves the player to the opposite port, **based on** graph connections.
 
 Parameters:  
 
-| Name              | Type     | Description                 |     |
-| ----------------- | -------- | --------------------------- | --- |
-| `currentPortGuid` | `string` | `Guid` of the current port  |     |
-| `ignoreShortcuts` | `bool`   | Whether to ignore shortcuts |     |
+| Name              | Type     | Description                 |
+| ----------------- | -------- | --------------------------- |
+| `currentPortGuid` | `string` | `Guid` of the current port  |
+| `ignoreShortcuts` | `bool`   | Whether to ignore shortcuts |
 
 ---  
 
@@ -218,7 +221,7 @@ Moves the player to any selected port. **Does not rely on** graph connections.
 
 Parameters:  
 
-| Name               | Type      | Description                     |  
+| Name              | Type     | Description                    |  
 |-------------------|----------|--------------------------------|  
 | `currentPortGuid` | `string` | `Guid` of the current port     |  
 | `targetPortGuid`  | `string` | `Guid` of the target port      |  
@@ -329,8 +332,8 @@ Updates dropdown data with `Guid`, display name, and value.
 Parameters:  
 
 | Name    | Type                                                 | Description                                |  
-|--------|-----------------------------------------------------|--------------------------------------------|  
-| `data` | `IEnumerable<(string Guid, string DisplayName, T)>` | Data containing `Guid`, name, and value.   |  
+|---------|------------------------------------------------------|--------------------------------------------|  
+| `data`  | `IEnumerable<(string Guid, string DisplayName, T)>`  | Data containing `Guid`, name, and value.   |  
 
 ---  
 
@@ -344,14 +347,14 @@ IEnumerable<(string Guid, string Name, TransitionData Data)> GetTransitionsDropd
 
 Parameters:  
 
-| Name         | Type   | Description                    |     |
-| ------------ | ------ | ------------------------------ | --- |
-| `buildIndex` | `int`  | Scene index to fetch data for. |     |
+| Name         | Type   | Description                    |
+| ------------ | ------ | ------------------------------ |
+| `buildIndex` | `int`  | Scene index to fetch data for. |
 
 Return Values:  
 
-| Type                                                 | Description                     |  
-|-----------------------------------------------------|--------------------------------|  
+| Type                                                      | Description                      |  
+|-----------------------------------------------------------|----------------------------------|  
 | `IEnumerable<(string Guid, string Name, TransitionData)>` | Data for all ports on the scene. |  
 
 #### Example  
@@ -381,6 +384,7 @@ namespace WorldGraphEditor.Examples
 
             // Get current scene build index  
             var currentSceneBuildIndex = SceneManager.GetActiveScene().buildIndex;  
+
             // Get data about all ports on this scene  
             var scenePortsData = _container.GetTransitionsDropdownData(currentSceneBuildIndex);  
             
@@ -405,8 +409,8 @@ Returns data for all ports in the graph, grouped by scenes.
 
 Return Values:  
 
-| Type                                               | Description                  |  
-|---------------------------------------------------|-----------------------------|  
+| Type                                                | Description                  |  
+|-----------------------------------------------------|------------------------------|  
 | `IEnumerable<(string Guid, string Path, PortData)>` | Data for all graph ports.    |  
 
 #### Example  
@@ -635,11 +639,11 @@ static void RegisterAsyncHandler(EventType eventType, Func<Task> func, int prior
 
 Parameters:  
 
-| Name        | Type         | Description                                |     |
-| ----------- | ------------ | ------------------------------------------ | --- |
-| `eventType` | `EventType`  | Event triggering the async methods.        |     |
-| `func`      | `Func<Task>` | The `Task` — returning method to register. |     |
-| `priority`  | `int`        | Execution priority (higher = earlier).     |     |
+| Name        | Type         | Description                                |
+| ----------- | ------------ | ------------------------------------------ |
+| `eventType` | `EventType`  | Event triggering the async methods.        |
+| `func`      | `Func<Task>` | The `Task` — returning method to register. |
+| `priority`  | `int`        | Execution priority (higher = earlier).     |
 
 ---  
 
@@ -649,10 +653,10 @@ static void UnregisterAsyncHandler(EventType eventType, Func<Task> func)
 
 Parameters:  
 
-| Name        | Type         | Description                             |     |
-| ----------- | ------------ | --------------------------------------- | --- |
-| `eventType` | `EventType`  | Event to unregister from.               |     |
-| `func`      | `Func<Task>` | The `Task`— returning method to remove. |     |
+| Name        | Type         | Description                             |
+| ----------- | ------------ | --------------------------------------- |
+| `eventType` | `EventType`  | Event to unregister from.               |
+| `func`      | `Func<Task>` | The `Task`— returning method to remove. |
 
 ---  
 
