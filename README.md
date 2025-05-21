@@ -127,7 +127,7 @@ This way, you define how scenes are connected via passages. Additional port sett
 
 ### Types of Node Connections  
 
-- **Undirected** — Default connection. Transitions between passages is allowed in any direction.  
+- **Undirected** — Default connection. Transitions between passages are allowed in both directions.
 - **Shortcut** — Indicates that the passage is initially accessible from only one side (e.g., a locked door that opens from the other side). Can be used in [custom port implementations](#custom-port-implementation) to block transitions based on conditions.  
 - **One-Way** — A connection that allows movement only in the specified direction.  
 
