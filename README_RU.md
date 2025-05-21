@@ -8,13 +8,16 @@
   - [Основные возможности](#основные-возможности)
   - [Дополнительные возможности](#дополнительные-возможности)
   - [Технические детали](#технические-детали)
+- [Демо проект](#демо-проект) 
+  - [Как запустить](#как-запустить)
+  - [Возможные проблемы](#возможные-проблемы)
 - [Использование](#использование)  
   - [С чего начать](#с-чего-начать)  
   - [Сохранение графа и настройка компонентов](#сохранение-и-настройка)  
   - [Проверка](#проверка)  
 - [Кастомизация](#кастомизация)  
   - [Собственная реализация портов](#собственная-реализация-портов)  
-  - [Класс Dropdown](#класс-dropdown)  
+  - [Класс PortsDropdown](#класс-portsdropdown)  
   - [Выталкивание из проходов с помощью PushData](#выталкивание-из-проходов)  
   - [Реализация запуска TransitionManager](#собственная-реализация-запуска-transitionmanager)  
   - [События и вызов асинхронного кода](#события-и-вызов-асинхронного-кода)  
@@ -59,8 +62,31 @@ Windows, macOS, WebGL
 
 Никаких ограничений, связанных с другими платформами, обнаружено не было, однако на них не проводилось отдельного тестирования.
 
-**Демо:**  
-Инструмент не зависит от используемого рендер-пайплайна, однако демонстрационные сцены используют URP и старую систему ввода (Input System).
+
+# Демо проект
+
+Инструмент не зависит от выбранного рендер-пайплайна, однако демонстрационные сцены используют URP и старую систему ввода (Input Manager).
+
+## Как запустить
+
+1. Импортируйте **World Graph Editor** в проект
+2. Перейдите по пути `Assets/WorldGraphEditor/Resources/TransitionManager.prefab` и нажмите кнопку `Refresh Build Settings` (обновить список сцен) под полем `Container`. Это добавит демо сцены в настройки сборки
+3. Откройте сцену `Example 1` по пути: `Assets/WorldGraphEditor/Examples/Scenes/Example 1.unity`
+4. Запустите игру
+
+## Возможные проблемы
+
+После импорта демонстрационного проекта может не работать прыжок у игрока. Это связано с отсутствием корректного слоя для определения земли.
+
+### Как исправить
+
+1. Создайте новый физический слой, например `MyGround`
+2. Откройте префаб игрока по пути: `Assets/WorldGraphEditor/Examples/Prefabs/Player.prefab`  
+   и в поле `LayerMask` установите ваш новый слой
+3. В каждой демонстрационной сцене (`Assets/WorldGraphEditor/Examples/Scenes`)  
+   задайте этот слой (`MyGround`) всем дочерним объектам объекта `Ground`
+
+После этого прыжки игрока должны заработать корректно.
 
 # Использование
 ## С чего начать
@@ -96,9 +122,9 @@ Windows, macOS, WebGL
   
 ### Типы возможных связей между нодами  
   
-- **Non Directed** — Связь по умолчанию. Перемещение между проходами возможно в любом направлении  
+- **Undirected** — Связь по умолчанию. Перемещение между проходами возможно в любом направлении  
 - **Shortcut** — Указывает, что проход изначально доступен только с одной стороны (например, запертая дверь, открывающаяся с другой стороны). Может учитываться в [собственной реализации портов](#собственная-реализация-портов)  и блокировать переход в зависимости от условий
-- **Single Directed** — Связь, позволяющая проходить исключительно в заданном направлении  
+- **One-Way** — Связь, позволяющая проходить исключительно в заданном направлении  
   
 Тип связи настраивается в контекстном меню, которое открывается с помощью клика ПКМ по уже существующей связи.  
 ## Сохранение и настройка  
@@ -177,7 +203,7 @@ Windows, macOS, WebGL
   
 Для создания собственной реализации:  
 - Наследуйтесь от `PassageBase` или `TeleportBase`, либо реализуйте `ITransitionComponent`
-- Используйте класс [Dropdown](#класс-dropdown) и [соответствующие методы](#заполнение-dropdown-данными-из-графа) в `WorldGraphContainer` для создания выпадающих списков для инициализации текущего порта или выбора любого порта на графе  
+- Используйте класс [PortsDropdown](#класс-portsdropdown) и [соответствующие методы](#заполнение-portsdropdown-данными-из-графа) в `WorldGraphContainer` для создания выпадающих списков для инициализации текущего порта или выбора любого порта на графе  
 - Реализуйте метод `GetGuid()`, возвращающий `Guid` текущего порта  
 - Используйте метод `Refresh()` для получения данных из `TransitionManager` и `WorldGraphContainer` для обновления полей класса  
   
@@ -211,10 +237,10 @@ void GoFrom(string currentPortGuid, bool ignoreShortcuts)
   
 Параметры:  
   
-| Имя               | Тип      | Описание                 |  
-|-------------------|----------|--------------------------|  
-| `currentPortGuid` | `string` | `Guid` текущего порта    |  
-| `ignoreShortcuts` | `bool`   | Игнорировать ли шорткаты |  
+| Имя               | Тип      | Описание                 |
+| ----------------- | -------- | ------------------------ |
+| `currentPortGuid` | `string` | `Guid` текущего порта    |
+| `ignoreShortcuts` | `bool`   | Игнорировать ли шорткаты |
   
 ---  
   
@@ -226,10 +252,10 @@ void GoTo(string currentPortGuid, string targetPortGuid)
   
 Параметры:  
   
-| Имя               | Тип       | Описание                                    |  
-|-------------------|-----------|---------------------------------------------|  
-| `currentPortGuid` | `string`  | `Guid` текущего порта                       |  
-| `targetPortGuid`  | `string`  | `Guid` целевого порта                       |  
+| Имя               | Тип      | Описание              |
+| ----------------- | -------- | --------------------- |
+| `currentPortGuid` | `string` | `Guid` текущего порта |
+| `targetPortGuid`  | `string` | `Guid` целевого порта |
   
 ---  
   
@@ -247,7 +273,8 @@ namespace WorldGraphEditor.Examples
 {
     public class MyExampleTeleport : MonoBehaviour, ITransitionComponent, IInteractable
     {
-        [SerializeField] private Dropdown<TransitionData> _assignedPort = new();
+	    // Выпадающий список
+        [SerializeField] private PortsDropdown _assignedPort = new();
 
         [SerializeField, ReadOnlyField] private string _currentGuid;
         
@@ -266,13 +293,13 @@ namespace WorldGraphEditor.Examples
             var sceneBuildIndex = SceneManager.GetActiveScene().buildIndex;
             
             // Получение данных обо всех портах на конкретной сцене
-            var data = _container.GetTransitionsDropdownData(sceneBuildIndex);
+			var data = _container.GetPortsDropdownData(sceneBuildIndex);
             
             // Установка значений в выпадающий список
             _assignedPort.SetData(data);
 
             // Получение выбранного значения из выпадающего списка
-            _currentGuid = _assignedPort.GetSelectedValue().CurrentPassageGuid;
+            _currentGuid = _assignedPort.GetSelectedValue();
         }
 #endif
 
@@ -312,59 +339,59 @@ namespace WorldGraphEditor.Examples
 ```  
 ---  
   
-### Класс Dropdown  
+### Класс PortsDropdown  
   
-Dropdown — это класс, предназначенный для создания выпадающих списков, связанных с портами в графе. Он обеспечивает сохранность выбранного значения даже при переименовании портов или изменении их количества на ноде.  
+PortsDropdown — это класс, предназначенный для создания выпадающих списков, связанных с портами в графе. Он обеспечивает сохранность выбранного значения даже при переименовании портов или изменении их количества на ноде.  
   
 Класс содержит два метода:  
   
 ```csharp  
-T GetSelectedValue()  
+string GetSelectedValue()  
 ```  
   
 Возвращает выбранное значение.  
   
 Возвращаемые значения:  
   
-| Тип | Описание                                                                             |
-| --- | ------------------------------------------------------------------------------------ |
-| `T` | Выбранное значение, если такое найдено, иначе — значение по умолчанию (`default(T)`) |
+| Тип      | Описание                    |
+| -------- | --------------------------- |
+| `string` | Выбранное значение (`Guid`) |
   
 ---  
   
 ```csharp  
-void SetData(IEnumerable<(string Guid, string DisplayName, T Value)> data)  
+void SetData(IEnumerable<(string Guid, string DisplayName)> data)  
 ```  
-Обновляет данные для выпадающего списка, состоящие из `Guid`, отображаемого имени и значения.  
+Обновляет данные для выпадающего списка, состоящие из `Guid` и отображаемого имени.  
   
 Параметры:  
   
-| Имя    | Тип                                                       | Описание                                                                      |  
-|--------|-----------------------------------------------------------|-------------------------------------------------------------------------------|  
-| `data` | `IEnumerable<(string Guid, string DisplayName, T Value)>` | Данные, где каждый элемент содержит`Guid`, имя для отображения и значение `T` |  
+| Имя    | Тип                                              | Описание                                                        |
+| ------ | ------------------------------------------------ | --------------------------------------------------------------- |
+| `data` | `IEnumerable<(string Guid, string DisplayName)>` | Данные, где каждый элемент содержит`Guid` и имя для отображения |
   
 ---  
   
-### Заполнение Dropdown данными из графа  
+### Заполнение PortsDropdown данными из графа  
   
-В `WorldGraphContainer` предусмотрены **EditorOnly** методы для упрощенного заполнения `Dropdown` данными из графа.  
+В `WorldGraphContainer` предусмотрены **EditorOnly** методы для упрощенного заполнения `PortsDropdown` данными из графа.  
   
   
 ```csharp  
-IEnumerable<(string Guid, string Name, TransitionData Data)> GetTransitionsDropdownData(int buildIndex)  
+IEnumerable<(string Guid, string Name)> GetPortsDropdownData(int buildIndex)  
 ```  
 
 Параметры:  
   
-| Имя          | Тип    | Описание                                        |
-| ------------ | ------ | ----------------------------------------------- |
-| `buildIndex` | `int`  | Индекс сцены, для которой нужно получить данные |
+| Имя          | Тип   | Описание                                        |
+| ------------ | ----- | ----------------------------------------------- |
+| `buildIndex` | `int` | Индекс сцены, для которой нужно получить данные |
 
 Возвращаемые значения:  
   
-| Тип                                                            | Описание                        |  
-|----------------------------------------------------------------|---------------------------------|  
-| `IEnumerable<(string Guid, string Name, TransitionData Data)>` | Данные обо всех портах на сцене |  
+| Тип                                       | Описание                        |
+| ----------------------------------------- | ------------------------------- |
+| `IEnumerable<(string Guid, string Name)>` | Данные обо всех портах на сцене |
   
   
 #### Пример  
@@ -377,8 +404,8 @@ namespace WorldGraphEditor.Examples
 {
     public class MyComponentWithDropdown : MonoBehaviour, ITransitionComponent
     {
-        // Выпадающий список с типом TransitionData
-        [SerializeField] private Dropdown<TransitionData> _assignedPortDropdown = new();
+        // Выпадающий список
+        [SerializeField] private PortsDropdown _assignedPortDropdown = new();
 
         private string _currentPortGuid;
         
@@ -397,13 +424,13 @@ namespace WorldGraphEditor.Examples
             var currentSceneBuildIndex = SceneManager.GetActiveScene().buildIndex;
         
             // Получение данных обо всех портах на сцене
-            var scenePortsData = _container.GetTransitionsDropdownData(currentSceneBuildIndex);
+            var scenePortsData = _container.GetPortsDropdownData(currentSceneBuildIndex);
             
             // Установка данных в выпадающий список
             _assignedPortDropdown.SetData(scenePortsData);
         
             // Получение выбранного значения из списка
-            _currentPortGuid = _assignedPortDropdown.GetSelectedValue().CurrentPassageGuid;
+            _currentPortGuid = _assignedPortDropdown.GetSelectedValue();
         }
 #endif
     }
@@ -413,16 +440,16 @@ namespace WorldGraphEditor.Examples
 ---  
   
 ```csharp  
-IEnumerable<(string Guid, string Path, PortData Data)> GetAllPortsDropdownData()  
+IEnumerable<(string Guid, string Path)> GetAllPortsDropdownData()  
 ```  
   
 Возвращает данные обо всех портах на графе, группируя их по сценам.  
   
 Возвращаемые значения:  
   
-| Тип                                                      | Описание                         |  
-|----------------------------------------------------------|----------------------------------|  
-| `IEnumerable<(string Guid, string Path, PortData Data)>` | Данные обо всех портах на графе  |  
+| Тип                                       | Описание                        |
+| ----------------------------------------- | ------------------------------- |
+| `IEnumerable<(string Guid, string Path)>` | Данные обо всех портах на графе |
   
 #### Пример  
   
@@ -433,8 +460,8 @@ namespace WorldGraphEditor.Examples
 {
     public class MyComponentWithDropdown : MonoBehaviour, ITransitionComponent
     {
-        // Выпадающий список с типом PortData
-        [SerializeField] private Dropdown<PortData> _targetPortDropdown = new();
+        // Выпадающий список
+        [SerializeField] private PortsDropdown _targetPortDropdown = new();
 
         private string _targetPortGuid;
         
@@ -456,7 +483,7 @@ namespace WorldGraphEditor.Examples
             _targetPortDropdown.SetData(allPortsData);
         
             // Получение выбранного значения из списка
-            _targetPortGuid = _targetPortDropdown.GetSelectedValue().Guid;
+            _targetPortGuid = _targetPortDropdown.GetSelectedValue();
         }
 #endif
     }
@@ -662,10 +689,10 @@ static void UnregisterAsyncHandler(EventType eventType, Func<Task> func)
   
 Параметры:  
   
-| Имя          | Тип          | Описание                                          |  
-|--------------|--------------|---------------------------------------------------|  
-| `eventType`  | `EventType`  | Тип события, для которого нужно удалить метод     |  
-| `func`       | `Func<Task>` | Метод, возвращающий `Task`, который нужно удалить |  
+| Имя         | Тип          | Описание                                          |
+| ----------- | ------------ | ------------------------------------------------- |
+| `eventType` | `EventType`  | Тип события, для которого нужно удалить метод     |
+| `func`      | `Func<Task>` | Метод, возвращающий `Task`, который нужно удалить |
   
 ---
   

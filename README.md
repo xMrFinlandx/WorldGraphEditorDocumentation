@@ -8,13 +8,16 @@
   - [Key Features](#key-features)
   - [Additional Features](#additional-features)
   - [Technical Details](#technical-details)
+- [Demo project](#demo-project) 
+  - [How to launch](#How-to-launch-the-demo)
+  - [Potential Issues](#Potential-Issues)
 - [Usage](#usage)  
   - [Getting Started](#getting-started)  
   - [Saving the Graph and Configuring Components](#saving-and-configuration)  
   - [Validation](#validation)  
 - [Customization](#customization)  
   - [Custom Port Implementation](#custom-port-implementation)  
-  - [Dropdown Class](#dropdown-class)  
+  - [PortsDropdown Class](#portsdropdown-class)  
   - [Pushing Out of Passages with PushData](#pushing-out-of-passages)  
   - [Custom TransitionManager Launch Implementation](#custom-transitionmanager-launch-implementation)  
   - [Events and Asynchronous Code Execution](#events-and-asynchronous-code-execution)  
@@ -60,8 +63,35 @@ Windows, macOS, WebGL
 
 No platform-specific limitations were found for other platforms, but no dedicated testing was performed on them.
 
-**Demo:**
+# Demo Project
+
 The asset is not dependent on any render pipeline; however, the demo scenes use URP and the old input system.
+
+## How to launch the demo:
+
+1. Import **World Graph Editor** into your project.
+2. Navigate to `Assets/WorldGraphEditor/Resources/TransitionManager.prefab`  
+   and click the `Refresh Build Settings` button under the `Container` field.  
+   This will automatically add the required scenes to your Build Settings.
+3. Open the `Example 1` scene located at:  
+   `Assets/WorldGraphEditor/Examples/Scenes/Example 1.unity`
+4. Press Play to run the game.
+
+## Potential Issues
+
+After importing the demo project, the player character may not be able to jump.  
+This is usually due to missing or misconfigured ground layer settings.
+
+### How to fix:
+
+1. Create a new physics layer, e.g., `MyGround`.
+2. Open the player prefab at:  
+   `Assets/WorldGraphEditor/Examples/Prefabs/Player.prefab`  
+   and set your new layer in the `LayerMask` field.
+3. For each demo scene (`Assets/WorldGraphEditor/Examples/Scenes`),  
+   assign the `MyGround` layer to all child objects of the `Ground` GameObject.
+
+Once this is done, the player's jump should work as expected.
 
 # Usage
 ## Getting Started
@@ -97,9 +127,9 @@ This way, you define how scenes are connected via passages. Additional port sett
 
 ### Types of Node Connections  
 
-- **Non Directed** — Default connection. Transitions between passages is allowed in any direction.  
+- **Undirected** — Default connection. Transitions between passages is allowed in any direction.  
 - **Shortcut** — Indicates that the passage is initially accessible from only one side (e.g., a locked door that opens from the other side). Can be used in [custom port implementations](#custom-port-implementation) to block transitions based on conditions.  
-- **Single Directed** — A connection that allows movement only in the specified direction.  
+- **One-Way** — A connection that allows movement only in the specified direction.  
 
 The connection type can be configured in the context menu, which opens by right-clicking an existing connection.  
 
@@ -175,7 +205,7 @@ If the target port is missing in the scene:
 
 To create a custom implementation:  
 - Inherit from `PassageBase`, `TeleportBase`, or implement `ITransitionComponent`.  
-- Use the [Dropdown class](#dropdown-class) and [related methods](#populating-dropdown-with-graph-data) in `WorldGraphContainer` to create dropdowns for initializing the current port or selecting any port in the graph.  
+- Use the [PortsDropdown class](#portsdropdown-class) and [related methods](#populating-portsdropdown-with-graph-data) in `WorldGraphContainer` to create dropdowns for initializing the current port or selecting any port in the graph.  
 - Implement the `GetGuid()` method, which returns the `Guid` of the current port.  
 - Use the `Refresh()` method to update fields with data from `TransitionManager` and `WorldGraphContainer`.  
 
@@ -194,9 +224,9 @@ Loads a scene by its build index.
 
 Parameters:  
 
-| Name         | Type   | Description         |  
-| ------------ | ------ | ------------------- |  
-| `buildIndex` | `int`  | Scene build index   |  
+| Name         | Type  | Description       |
+| ------------ | ----- | ----------------- |
+| `buildIndex` | `int` | Scene build index |
 
 ---  
 
@@ -221,10 +251,10 @@ Moves the player to any selected port. **Does not rely on** graph connections.
 
 Parameters:  
 
-| Name              | Type     | Description                    |  
-|-------------------|----------|--------------------------------|  
-| `currentPortGuid` | `string` | `Guid` of the current port     |  
-| `targetPortGuid`  | `string` | `Guid` of the target port      |  
+| Name              | Type     | Description                |
+| ----------------- | -------- | -------------------------- |
+| `currentPortGuid` | `string` | `Guid` of the current port |
+| `targetPortGuid`  | `string` | `Guid` of the target port  |
 
 ---  
 
@@ -241,7 +271,7 @@ namespace WorldGraphEditor.Examples
 {  
     public class MyExampleTeleport : MonoBehaviour, ITransitionComponent, IInteractable  
     {  
-        [SerializeField] private Dropdown<TransitionData> _assignedPort = new();  
+        [SerializeField] private PortsDropdown _assignedPort = new();  
         [SerializeField, ReadOnlyField] private string _currentGuid;  
 
 #if UNITY_EDITOR  
@@ -259,13 +289,13 @@ namespace WorldGraphEditor.Examples
             var sceneBuildIndex = SceneManager.GetActiveScene().buildIndex;  
             
             // Get data about all ports on this scene  
-            var data = _container.GetTransitionsDropdownData(sceneBuildIndex);  
+            var data = _container.GetPortsDropdownData(sceneBuildIndex);  
             
             // Set values in dropdown  
             _assignedPort.SetData(data);  
 
             // Get selected value from dropdown  
-            _currentGuid = _assignedPort.GetSelectedValue().CurrentPassageGuid;  
+            _currentGuid = _assignedPort.GetSelectedValue();  
         }  
 #endif  
 
@@ -304,58 +334,58 @@ namespace WorldGraphEditor.Examples
 ```
 ---  
 
-### Dropdown Class  
+### PortsDropdown Class  
 
-The `Dropdown` class is designed to create dropdowns linked to ports in the graph. It ensures selected values persist even if ports are renamed or their count changes.  
+The `PortsDropdown` class is designed to create dropdowns linked to ports in the graph. It ensures selected values persist even if ports are renamed or their count changes.  
 
 The class includes two methods:  
 
 ```csharp  
-T GetSelectedValue()   
+string GetSelectedValue()   
 ```
 
 Returns the selected value.  
 
 Return Values:  
 
-| Type | Description                                                                 |  
-| ---- | --------------------------------------------------------------------------- |  
-| `T`  | The selected value if found; otherwise, `default(T)`.                       |  
+| Type     | Description                  |
+| -------- | ---------------------------- |
+| `string` | The selected value (`Guid`). |
 
 ---  
 
 ```csharp  
-void SetData(IEnumerable<(string Guid, string DisplayName, T Value)> data)    
+void SetData(IEnumerable<(string Guid, string DisplayName)> data)    
 ```
-Updates dropdown data with `Guid`, display name, and value.  
+Updates dropdown data with `Guid` and display name.  
 
 Parameters:  
 
-| Name    | Type                                                 | Description                                |  
-|---------|------------------------------------------------------|--------------------------------------------|  
-| `data`  | `IEnumerable<(string Guid, string DisplayName, T)>`  | Data containing `Guid`, name, and value.   |  
+| Name   | Type                                             | Description                      |
+| ------ | ------------------------------------------------ | -------------------------------- |
+| `data` | `IEnumerable<(string Guid, string DisplayName)>` | Data containing `Guid` and name. |
 
 ---  
 
-### Populating Dropdown with Graph Data  
+### Populating PortsDropdown with Graph Data  
 
-`WorldGraphContainer` provides **EditorOnly** methods to simplify dropdown population:  
+`WorldGraphContainer` provides **EditorOnly** methods to simplify `PortsDropdown` population:  
 
 ```csharp  
-IEnumerable<(string Guid, string Name, TransitionData Data)> GetTransitionsDropdownData(int buildIndex)   
+IEnumerable<(string Guid, string Name)> GetTransitionsDropdownData(int buildIndex) 
 ```
 
 Parameters:  
 
-| Name         | Type   | Description                    |
-| ------------ | ------ | ------------------------------ |
-| `buildIndex` | `int`  | Scene index to fetch data for. |
+| Name         | Type  | Description                    |
+| ------------ | ----- | ------------------------------ |
+| `buildIndex` | `int` | Scene index to fetch data for. |
 
 Return Values:  
 
-| Type                                                      | Description                      |  
-|-----------------------------------------------------------|----------------------------------|  
-| `IEnumerable<(string Guid, string Name, TransitionData)>` | Data for all ports on the scene. |  
+| Type                                      | Description                      |
+| ----------------------------------------- | -------------------------------- |
+| `IEnumerable<(string Guid, string Name)>` | Data for all ports on the scene. |
 
 #### Example  
 
@@ -367,8 +397,8 @@ namespace WorldGraphEditor.Examples
 {  
     public class MyComponentWithDropdown : MonoBehaviour, ITransitionComponent  
     {  
-        // Dropdown with TransitionData type  
-        [SerializeField] private Dropdown<TransitionData> _assignedPortDropdown = new();  
+        // Dropdown   
+        [SerializeField] private PortsDropdown _assignedPortDropdown = new();  
         private string _currentPortGuid;  
 
 #if UNITY_EDITOR  
@@ -384,15 +414,14 @@ namespace WorldGraphEditor.Examples
 
             // Get current scene build index  
             var currentSceneBuildIndex = SceneManager.GetActiveScene().buildIndex;  
-
             // Get data about all ports on this scene  
-            var scenePortsData = _container.GetTransitionsDropdownData(currentSceneBuildIndex);  
+            var scenePortsData = _container.GetPortsDropdownData(currentSceneBuildIndex);  
             
             // Set data in dropdown  
             _assignedPortDropdown.SetData(scenePortsData);  
         
             // Get selected value from dropdown  
-            _currentPortGuid = _assignedPortDropdown.GetSelectedValue().CurrentPassageGuid;  
+            _currentPortGuid = _assignedPortDropdown.GetSelectedValue();  
         }  
 #endif  
     }  
@@ -402,16 +431,16 @@ namespace WorldGraphEditor.Examples
 ---  
 
 ```csharp  
-IEnumerable<(string Guid, string Path, PortData Data)> GetAllPortsDropdownData()   
+IEnumerable<(string Guid, string Path)> GetAllPortsDropdownData()   
 ```
 
 Returns data for all ports in the graph, grouped by scenes.  
 
 Return Values:  
 
-| Type                                                | Description                  |  
-|-----------------------------------------------------|------------------------------|  
-| `IEnumerable<(string Guid, string Path, PortData)>` | Data for all graph ports.    |  
+| Type                                      | Description               |
+| ----------------------------------------- | ------------------------- |
+| `IEnumerable<(string Guid, string Path)>` | Data for all graph ports. |
 
 #### Example  
 
@@ -422,8 +451,8 @@ namespace WorldGraphEditor.Examples
 {  
     public class MyComponentWithDropdown : MonoBehaviour, ITransitionComponent  
     {  
-        // Dropdown with PortData type  
-        [SerializeField] private Dropdown<PortData> _targetPortDropdown = new();  
+        // Dropdown 
+        [SerializeField] private PortsDropdown _targetPortDropdown = new();  
 
         private string _targetPortGuid;  
         
@@ -445,7 +474,7 @@ namespace WorldGraphEditor.Examples
             _targetPortDropdown.SetData(allPortsData);  
         
             // Get selected value from dropdown  
-            _targetPortGuid = _targetPortDropdown.GetSelectedValue().Guid;  
+            _targetPortGuid = _targetPortDropdown.GetSelectedValue();  
         }  
 #endif  
     }  
